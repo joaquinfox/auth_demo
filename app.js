@@ -14,6 +14,13 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
+
 express()
   .set('view engine', 'ejs')
   .use(express.urlencoded({ extended: true }))
@@ -29,7 +36,7 @@ express()
   .get('/', (req, res) => {
     res.render('register');
   })
-  .get('/secret', (req, res) => {
+  .get('/secret', isLoggedIn,(req, res) => {
     res.render('secret');
   })
   .get('/register', (req, res) => {
