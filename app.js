@@ -1,5 +1,4 @@
 const express = require('express');
-const app = express();
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
@@ -15,7 +14,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app
+express()
   .set('view engine', 'ejs')
   .use(express.urlencoded({ extended: true }))
   .use(
@@ -36,8 +35,34 @@ app
   .get('/register', (req, res) => {
     res.render('register');
   })
+  .post('/register', (req, res) => {
+    User.register(
+      new User({ username: req.body.username }),
+      req.body.password,
+      (err, user) => {
+        if (err) {
+          return res.redirect('register');
+        }
+        passport.authenticate('local')(req, res, () => {
+          res.render('secret');
+        });
+      }
+    );
+  })
   .get('/login', (req, res) => {
     res.render('login');
+  })
+  .post(
+    '/login',
+    passport.authenticate('local', {
+      successRedirect: '/secret',
+      failureRedirect: '/login',
+    }),
+    (req, res) => {}
+  )
+  .get('/logout', (req, res) => {
+    req.logout();
+    res.redirect('/');
   })
   .listen(process.env.PORT || 3000, () => {
     console.log('listening');
